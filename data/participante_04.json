@@ -1,18 +1,17 @@
 {
-  "tipo": "proyecto",
+  "tipo": "compra",
   "nombre": "Jose Martinez",
-  "habilidades": [
-    "devops",
-    "gestion de proyecto"
+  "presupuesto_max": 300,
+  "productos_interes": [
+    "escritorio standing",
+    "laptop stand",
+    "silla ergonomica",
+    "teclado mecanico"
   ],
-  "disponibilidad_horas": 10,
-  "tareas_interes": [
-    "interfaz de usuario",
-    "deployment",
-    "desarrollo de API",
-    "integracion de servicios"
+  "marcas_preferidas": [
+    "Razer",
+    "Dell",
+    "sin preferencia"
   ],
-  "tareas_evitar": [
-    "optimizacion de rendimiento"
-  ]
+  "prioridad": "calidad"
 }

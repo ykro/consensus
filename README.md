@@ -1,6 +1,6 @@
 # Consensus
 
-Sistema de consenso grupal usando IA para diferentes tipos de decisiones.
+Sistema de consenso grupal hibrido: usa algoritmos deterministas para casos simples y LLM (Gemini) como fallback para casos complejos.
 
 ## Tipos de decision soportados
 
@@ -11,11 +11,49 @@ Sistema de consenso grupal usando IA para diferentes tipos de decisiones.
 | **proyecto** | Asignar tareas en proyectos | habilidades, horas, tareas de interes |
 | **compra** | Organizar compras grupales | presupuesto, productos, marcas, prioridad |
 
+## Enfoque hibrido: Algoritmo + LLM
+
+El sistema usa un enfoque de dos fases:
+
+```
+Participantes → Evaluar Complejidad → Simple? → Solver Algoritmico → Resultado
+                                         ↓ No
+                                    Gemini (fallback)
+```
+
+### Cuando usa algoritmo
+
+- **Complejidad baja** (< 0.6): Fechas en comun, presupuestos similares, preferencias alineadas
+- Respuesta instantanea, sin costo de API
+- Resultados deterministas y explicables
+
+### Cuando usa LLM
+
+- **Complejidad alta** (>= 0.6): Sin fechas comunes, presupuestos muy dispares, conflictos
+- Cuando el algoritmo tiene baja confianza (< 70%)
+- Para generar multiples propuestas (`--rounds`)
+
+### Metricas de complejidad por tipo
+
+| Tipo | Factores que aumentan complejidad |
+|------|----------------------------------|
+| reunion | Sin fechas/horas comunes, muchas zonas distintas, muchas restricciones alimentarias |
+| viaje | Sin fechas comunes, presupuestos difieren >3x, sin destinos comunes |
+| proyecto | Pocas horas disponibles, habilidades no cubren tareas, conflictos de preferencias |
+| compra | Presupuestos difieren >5x, sin productos comunes, prioridades muy diversas |
+
+### Algoritmos utilizados
+
+- **Reunion**: Interseccion de fechas/horas, moda para zona, union de restricciones
+- **Viaje**: Fechas mas votadas, presupuesto minimo, destino mas popular
+- **Proyecto**: Matching greedy (habilidad + interes + disponibilidad)
+- **Compra**: Productos mas votados, presupuesto minimo, prioridad mas comun
+
 ## Requisitos
 
 - Python 3.11+
 - [uv](https://github.com/astral-sh/uv) (gestor de paquetes)
-- API Key de Google Gemini
+- API Key de Google Gemini (opcional si usas `--algo-only`)
 
 ## Instalacion
 
@@ -61,10 +99,22 @@ uv run python generate_data.py --type proyecto --clean
 ### 2. Obtener decision
 
 ```bash
-# Decision directa
+# Decision automatica (algoritmo si es simple, LLM si es complejo)
 uv run python decide.py
 
-# Usar modelo Pro
+# Forzar solo algoritmo (sin LLM, sin API key necesaria)
+uv run python decide.py --algo-only
+
+# Forzar solo LLM (comportamiento original)
+uv run python decide.py --llm-only
+
+# Ver metricas de complejidad
+uv run python decide.py --verbose
+
+# Ajustar umbral de complejidad (default: 0.6)
+uv run python decide.py --threshold 0.4
+
+# Usar modelo Pro de Gemini
 uv run python decide.py --pro
 ```
 
@@ -207,8 +257,14 @@ consensus/
 │   ├── viaje.py
 │   ├── proyecto.py
 │   └── compra.py
+├── solvers/                 # Algoritmos de consenso
+│   ├── base.py              # Interfaces (SolverResult, ComplexityScore)
+│   ├── reunion.py           # Solver para reuniones
+│   ├── viaje.py             # Solver para viajes
+│   ├── proyecto.py          # Solver para proyectos
+│   └── compra.py            # Solver para compras
 ├── generate_data.py         # Genera datos de ejemplo
-├── decide.py                # Obtiene decision de Gemini
+├── decide.py                # Decide usando algoritmo o LLM
 ├── vote.py                  # Sistema de votacion
 └── .env                     # API key (no commitear)
 ```

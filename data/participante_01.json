@@ -1,17 +1,17 @@
 {
-  "tipo": "proyecto",
+  "tipo": "compra",
   "nombre": "Ana Garcia",
-  "habilidades": [
-    "documentacion",
-    "machine learning",
-    "frontend"
+  "presupuesto_max": 150,
+  "productos_interes": [
+    "webcam",
+    "hub USB",
+    "mouse ergonomico",
+    "escritorio standing"
   ],
-  "disponibilidad_horas": 25,
-  "tareas_interes": [
-    "desarrollo de API",
-    "base de datos"
+  "marcas_preferidas": [
+    "Corsair",
+    "LG",
+    "Logitech"
   ],
-  "tareas_evitar": [
-    "interfaz de usuario"
-  ]
+  "prioridad": "garantia"
 }

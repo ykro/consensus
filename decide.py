@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Usa Gemini para decidir parametros basado en inputs de participantes."""
+"""Usa algoritmos o Gemini para decidir parametros basado en inputs de participantes."""
 
 import argparse
 import json
@@ -13,7 +13,14 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.markdown import Markdown
 
+from solvers import get_solver
+
 load_dotenv()
+
+# Umbral de complejidad por defecto
+DEFAULT_THRESHOLD = 0.6
+# Confianza minima para aceptar resultado algoritmico
+MIN_CONFIDENCE = 0.7
 
 console = Console()
 
@@ -214,22 +221,32 @@ def get_current_round() -> int:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Decide parametros usando Gemini")
+    parser = argparse.ArgumentParser(description="Decide parametros usando algoritmos o Gemini")
     parser.add_argument("--pro", action="store_true", help="Usar gemini-3-pro-preview")
     parser.add_argument("--rounds", "-r", type=int, help="Numero de opciones a proponer (modo iterativo)")
     parser.add_argument("--continue", "-c", dest="continue_round", action="store_true",
                         help="Continuar desde la ultima ronda")
+    parser.add_argument("--algo-only", action="store_true",
+                        help="Solo usar algoritmo, no LLM")
+    parser.add_argument("--llm-only", action="store_true",
+                        help="Solo usar LLM, ignorar algoritmo")
+    parser.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD,
+                        help=f"Umbral de complejidad para usar LLM (default: {DEFAULT_THRESHOLD})")
+    parser.add_argument("--verbose", "-v", action="store_true",
+                        help="Mostrar metricas de complejidad")
     args = parser.parse_args()
 
-    # Verificar API key
+    # Verificar API key (solo requerida si no es --algo-only)
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if not api_key:
+    if not api_key and not args.algo_only:
         console.print("[red]Error: No se encontro GEMINI_API_KEY[/red]")
         console.print("[dim]Crea un archivo .env con: GEMINI_API_KEY=tu_api_key[/dim]")
+        console.print("[dim]O usa --algo-only para resolver sin LLM[/dim]")
         sys.exit(1)
 
     model_name = "gemini-3-pro-preview" if args.pro else "gemini-3-flash-preview"
-    console.print(f"[cyan]Modelo:[/cyan] {model_name}")
+    if not args.algo_only:
+        console.print(f"[cyan]Modelo:[/cyan] {model_name}")
 
     # Cargar participantes
     data_dir = Path("data")
@@ -263,58 +280,108 @@ def main():
             extra = ""
         console.print(f"  - {nombre} ({extra})")
 
-    # Construir prompt
-    data_json = json.dumps(participants, ensure_ascii=False, indent=2)
-    extra_context = ""
+    # --- ENFOQUE HIBRIDO: Algoritmo primero, luego LLM ---
+    use_llm = args.llm_only
+    algo_result = None
 
-    # Modo iterativo: continuar con votos
-    if args.continue_round:
-        current_round = get_current_round()
-        prev_round = current_round - 1
-        votes = load_votes(prev_round)
+    if not args.llm_only:
+        solver = get_solver(decision_type)
+        complexity = solver.evaluate_complexity(participants)
 
-        if votes:
-            extra_context = f"""
+        if args.verbose:
+            console.print(f"\n[cyan]Complejidad:[/cyan] {complexity.score:.2f}")
+            for factor in complexity.factors:
+                console.print(f"  - {factor}")
+
+        # Intentar resolver algoritmicamente si la complejidad es baja
+        if complexity.is_simple(args.threshold) or args.algo_only:
+            console.print("\n[cyan]Intentando resolver algoritmicamente...[/cyan]")
+            algo_result = solver.solve(participants)
+
+            if args.verbose:
+                console.print(f"[dim]Confianza: {algo_result.confidence:.0%}[/dim]")
+
+            if algo_result.success and algo_result.confidence >= MIN_CONFIDENCE:
+                # Exito con algoritmo
+                title = "Decision de Consenso (Algoritmico)"
+                console.print(Panel(algo_result.format_output(), title=title, border_style="green"))
+
+                if args.rounds:
+                    current_round = get_current_round()
+                    save_proposal(current_round, algo_result.format_output(), decision_type)
+                    console.print(f"\n[dim]Para votar: uv run python vote.py --round {current_round}[/dim]")
+                return
+            elif args.algo_only:
+                # Forzado a solo algoritmo pero falló
+                console.print("[yellow]Advertencia: Algoritmo con baja confianza[/yellow]")
+                title = "Decision de Consenso (Algoritmico - Baja Confianza)"
+                console.print(Panel(algo_result.format_output(), title=title, border_style="yellow"))
+                return
+            else:
+                console.print("[dim]Confianza baja, usando LLM como fallback...[/dim]")
+                use_llm = True
+        else:
+            console.print(f"[dim]Complejidad alta ({complexity.score:.2f}), usando LLM...[/dim]")
+            use_llm = True
+
+    # --- USAR LLM (Gemini) ---
+    if use_llm:
+        if not api_key:
+            console.print("[red]Error: Se necesita GEMINI_API_KEY para este caso complejo[/red]")
+            sys.exit(1)
+
+        # Construir prompt
+        data_json = json.dumps(participants, ensure_ascii=False, indent=2)
+        extra_context = ""
+
+        # Modo iterativo: continuar con votos
+        if args.continue_round:
+            current_round = get_current_round()
+            prev_round = current_round - 1
+            votes = load_votes(prev_round)
+
+            if votes:
+                extra_context = f"""
 VOTOS DE LA RONDA ANTERIOR:
 {json.dumps(votes, ensure_ascii=False, indent=2)}
 
 Considera estos votos para refinar tu decision."""
-            console.print(f"[cyan]Continuando desde ronda {prev_round} con votos[/cyan]")
+                console.print(f"[cyan]Continuando desde ronda {prev_round} con votos[/cyan]")
 
-    # Determinar tarea
-    if args.rounds:
-        task = TASKS[decision_type]["propose"].format(num_options=args.rounds)
-        current_round = get_current_round()
-        console.print(f"[cyan]Ronda {current_round}: Proponiendo {args.rounds} opciones[/cyan]")
-    else:
-        task = TASKS[decision_type]["decide"]
+        # Determinar tarea
+        if args.rounds:
+            task = TASKS[decision_type]["propose"].format(num_options=args.rounds)
+            current_round = get_current_round()
+            console.print(f"[cyan]Ronda {current_round}: Proponiendo {args.rounds} opciones[/cyan]")
+        else:
+            task = TASKS[decision_type]["decide"]
 
-    prompt_template = PROMPTS[decision_type]
-    prompt = prompt_template.format(
-        count=len(participants),
-        data=data_json,
-        extra_context=extra_context,
-        task=task
-    )
+        prompt_template = PROMPTS[decision_type]
+        prompt = prompt_template.format(
+            count=len(participants),
+            data=data_json,
+            extra_context=extra_context,
+            task=task
+        )
 
-    console.print("\n[cyan]Consultando a Gemini...[/cyan]\n")
+        console.print("\n[cyan]Consultando a Gemini...[/cyan]\n")
 
-    # Llamar a Gemini
-    client = genai.Client()
-    response = client.models.generate_content(
-        model=model_name,
-        contents=prompt
-    )
+        # Llamar a Gemini
+        client = genai.Client()
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt
+        )
 
-    # Mostrar resultado
-    title = "Propuestas" if args.rounds else "Decision de Consenso"
-    console.print(Panel(Markdown(response.text), title=title, border_style="green"))
+        # Mostrar resultado
+        title = "Propuestas" if args.rounds else "Decision de Consenso (LLM)"
+        console.print(Panel(Markdown(response.text), title=title, border_style="green"))
 
-    # Guardar propuesta si es modo iterativo
-    if args.rounds:
-        current_round = get_current_round()
-        save_proposal(current_round, response.text, decision_type)
-        console.print(f"\n[dim]Para votar: uv run python vote.py --round {current_round}[/dim]")
+        # Guardar propuesta si es modo iterativo
+        if args.rounds:
+            current_round = get_current_round()
+            save_proposal(current_round, response.text, decision_type)
+            console.print(f"\n[dim]Para votar: uv run python vote.py --round {current_round}[/dim]")
 
 
 if __name__ == "__main__":

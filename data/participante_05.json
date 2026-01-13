@@ -1,17 +1,16 @@
 {
-  "tipo": "proyecto",
+  "tipo": "compra",
   "nombre": "Sofia Hernandez",
-  "habilidades": [
-    "documentacion",
-    "gestion de proyecto"
+  "presupuesto_max": 100,
+  "productos_interes": [
+    "microfono",
+    "escritorio standing",
+    "monitor"
   ],
-  "disponibilidad_horas": 10,
-  "tareas_interes": [
-    "testing automatizado",
-    "base de datos",
-    "integracion de servicios"
+  "marcas_preferidas": [
+    "Sony",
+    "Logitech",
+    "Samsung"
   ],
-  "tareas_evitar": [
-    "seguridad"
-  ]
+  "prioridad": "marca"
 }

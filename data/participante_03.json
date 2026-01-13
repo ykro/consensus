@@ -1,19 +1,15 @@
 {
-  "tipo": "proyecto",
+  "tipo": "compra",
   "nombre": "Maria Rodriguez",
-  "habilidades": [
-    "testing",
-    "devops",
-    "mobile"
+  "presupuesto_max": 500,
+  "productos_interes": [
+    "microfono",
+    "teclado mecanico",
+    "silla ergonomica"
   ],
-  "disponibilidad_horas": 15,
-  "tareas_interes": [
-    "code review",
-    "desarrollo de API"
+  "marcas_preferidas": [
+    "LG",
+    "Logitech"
   ],
-  "tareas_evitar": [
-    "optimizacion de rendimiento",
-    "deployment",
-    "integracion de servicios"
-  ]
+  "prioridad": "marca"
 }

@@ -1,21 +1,16 @@
 {
-  "tipo": "proyecto",
+  "tipo": "compra",
   "nombre": "Carlos Lopez",
-  "habilidades": [
-    "documentacion",
-    "devops",
-    "testing",
-    "frontend"
+  "presupuesto_max": 100,
+  "productos_interes": [
+    "monitor",
+    "hub USB",
+    "webcam"
   ],
-  "disponibilidad_horas": 20,
-  "tareas_interes": [
-    "documentacion tecnica",
-    "code review",
-    "testing automatizado",
-    "seguridad"
+  "marcas_preferidas": [
+    "Razer",
+    "Apple",
+    "HP"
   ],
-  "tareas_evitar": [
-    "interfaz de usuario",
-    "deployment"
-  ]
+  "prioridad": "envio rapido"
 }
