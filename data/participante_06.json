@@ -1,0 +1,22 @@
+{
+  "nombre": "Diego Perez",
+  "disponibilidad": {
+    "fechas": [
+      "2026-01-15",
+      "2026-01-16",
+      "2026-01-17",
+      "2026-01-25"
+    ],
+    "horas": [
+      "13:00-15:00",
+      "20:00-23:00"
+    ]
+  },
+  "zona": "Zona 10 - Zona Viva",
+  "restricciones_alimentarias": [
+    "vegetariano"
+  ],
+  "preferencias_lugar": [
+    "bar"
+  ]
+}

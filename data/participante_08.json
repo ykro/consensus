@@ -1,0 +1,21 @@
+{
+  "nombre": "Fernando Diaz",
+  "disponibilidad": {
+    "fechas": [
+      "2026-01-18",
+      "2026-01-25",
+      "2026-01-26"
+    ],
+    "horas": [
+      "12:00-14:00"
+    ]
+  },
+  "zona": "Zona 1 - Centro Historico",
+  "restricciones_alimentarias": [
+    "sin gluten"
+  ],
+  "preferencias_lugar": [
+    "restaurante",
+    "cafe"
+  ]
+}

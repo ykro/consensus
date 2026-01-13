@@ -1,0 +1,21 @@
+{
+  "nombre": "Carlos Lopez",
+  "disponibilidad": {
+    "fechas": [
+      "2026-01-15",
+      "2026-01-19",
+      "2026-01-23"
+    ],
+    "horas": [
+      "19:00-22:00",
+      "20:00-23:00"
+    ]
+  },
+  "zona": "Zona 1 - Centro Historico",
+  "restricciones_alimentarias": [
+    "sin mariscos"
+  ],
+  "preferencias_lugar": [
+    "bar"
+  ]
+}

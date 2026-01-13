@@ -1,0 +1,20 @@
+{
+  "nombre": "Ana Garcia",
+  "disponibilidad": {
+    "fechas": [
+      "2026-01-15",
+      "2026-01-24",
+      "2026-01-26"
+    ],
+    "horas": [
+      "12:00-14:00"
+    ]
+  },
+  "zona": "Zona 10 - Zona Viva",
+  "restricciones_alimentarias": [
+    "vegetariano"
+  ],
+  "preferencias_lugar": [
+    "bar"
+  ]
+}

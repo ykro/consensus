@@ -1,0 +1,21 @@
+{
+  "nombre": "Maria Rodriguez",
+  "disponibilidad": {
+    "fechas": [
+      "2026-01-15",
+      "2026-01-19",
+      "2026-01-22",
+      "2026-01-25",
+      "2026-01-26"
+    ],
+    "horas": [
+      "13:00-15:00"
+    ]
+  },
+  "zona": "Zona 4 - Cuatro Grados Norte",
+  "restricciones_alimentarias": [],
+  "preferencias_lugar": [
+    "restaurante",
+    "cafe"
+  ]
+}

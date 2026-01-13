@@ -1,0 +1,10 @@
+[project]
+name = "consensus"
+version = "0.1.0"
+description = "Sistema de consenso para reuniones sociales"
+requires-python = ">=3.11"
+dependencies = [
+    "google-genai",
+    "python-dotenv",
+    "rich",
+]
