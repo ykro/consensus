@@ -44,10 +44,78 @@ Participantes → Evaluar Complejidad → Simple? → Solver Algoritmico → Res
 
 ### Algoritmos utilizados
 
-- **Reunion**: Interseccion de fechas/horas, moda para zona, union de restricciones
-- **Viaje**: Fechas mas votadas, presupuesto minimo, destino mas popular
-- **Proyecto**: Matching greedy (habilidad + interes + disponibilidad)
-- **Compra**: Productos mas votados, presupuesto minimo, prioridad mas comun
+#### Reunion
+
+```
+1. FECHA: Contar votos por fecha → elegir la que mas participantes tienen
+2. HORA: Contar votos por rango horario → elegir el mas comun
+3. ZONA: Calcular moda (zona mas frecuente entre participantes)
+4. RESTRICCIONES: Union de todas las restricciones alimentarias
+5. TIPO LUGAR: Interseccion de preferencias, o el mas votado si no hay interseccion
+6. CONFIANZA: Promedio de (participantes_en_fecha / total, participantes_en_hora / total, participantes_en_zona / total)
+```
+
+#### Viaje
+
+```
+1. FECHA: Contar disponibilidad por fecha → elegir la mas popular
+2. PRESUPUESTO: Minimo de todos los presupuestos (para que todos puedan participar)
+3. DESTINO: Contar votos por destino de interes → elegir el mas votado
+4. DURACION: Moda de duraciones preferidas
+5. ACTIVIDADES: Top 3 actividades mas mencionadas
+6. RESTRICCIONES: Union de todas las restricciones
+7. CONFIANZA: Promedio de (participantes_en_fecha / total, votos_destino / total)
+```
+
+#### Proyecto (Matching Greedy)
+
+```
+1. Ordenar tareas por popularidad (mas solicitadas primero)
+2. Para cada tarea:
+   a. Filtrar candidatos que NO evitan esta tarea
+   b. Filtrar candidatos con horas disponibles
+   c. Calcular score por candidato:
+      - +3 si la tarea esta en sus intereses
+      - +2 si tiene habilidad relevante para la tarea
+      - -0.5 por cada tarea ya asignada (balancear carga)
+   d. Asignar tarea al candidato con mayor score
+   e. Restar horas estimadas (5h por tarea)
+3. CONFIANZA: tareas_asignadas / tareas_posibles
+```
+
+#### Compra
+
+```
+1. PRESUPUESTO: Minimo de todos (para que todos puedan participar)
+2. PRODUCTOS: Contar votos por producto → top 3 mas votados
+3. MARCAS: Contar preferencias (excluyendo "sin preferencia") → top 3
+4. PRIORIDAD: Moda del criterio de seleccion (precio, calidad, marca, etc.)
+5. CONFIANZA: Promedio de (votos_producto_top / total, votos_prioridad / total)
+```
+
+#### Calculo de Complejidad
+
+Cada solver evalua factores que dificultan el consenso (0.0 = trivial, 1.0 = imposible):
+
+```
+complejidad = 0.0
+
+# Factores comunes
+if sin_fechas_comunes: complejidad += 0.30
+if solo_1_fecha_comun: complejidad += 0.10
+
+# Factores especificos por tipo
+if presupuestos_difieren_mucho: complejidad += 0.25
+if sin_opciones_comunes: complejidad += 0.25
+if muchas_restricciones: complejidad += 0.15
+if grupo_grande (>15): complejidad += 0.10
+
+# Decision
+if complejidad < threshold (0.6):
+    usar_algoritmo()
+else:
+    usar_llm()
+```
 
 ## Requisitos
 
