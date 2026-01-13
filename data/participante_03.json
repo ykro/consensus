@@ -1,15 +1,18 @@
 {
-  "tipo": "compra",
+  "tipo": "proyecto",
   "nombre": "Maria Rodriguez",
-  "presupuesto_max": 500,
-  "productos_interes": [
-    "microfono",
-    "teclado mecanico",
-    "silla ergonomica"
+  "habilidades": [
+    "base de datos",
+    "documentacion",
+    "backend"
   ],
-  "marcas_preferidas": [
-    "LG",
-    "Logitech"
+  "disponibilidad_horas": 30,
+  "tareas_interes": [
+    "documentacion tecnica",
+    "interfaz de usuario"
   ],
-  "prioridad": "marca"
+  "tareas_evitar": [
+    "seguridad",
+    "deployment"
+  ]
 }

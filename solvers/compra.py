@@ -1,11 +1,34 @@
 """Solver algoritmico para compras grupales."""
 
 from collections import Counter
+from statistics import median
 from .base import BaseSolver, ComplexityScore, SolverResult
 
 
 class CompraSolver(BaseSolver):
     """Resuelve consenso para compras grupales."""
+
+    def __init__(self, budget_method: str = "minimum"):
+        """
+        Args:
+            budget_method: "minimum" (default) o "median"
+        """
+        self.budget_method = budget_method
+
+    def _calculate_budget(self, participants: list[dict]) -> tuple[int, str]:
+        """Calcula el presupuesto segun el metodo configurado."""
+        presupuestos = [p.get("presupuesto_max", 0) for p in participants if p.get("presupuesto_max")]
+        if not presupuestos:
+            return 0, "No hay presupuestos"
+
+        if self.budget_method == "median":
+            budget = int(median(presupuestos))
+            explanation = f"Presupuesto (mediana): Q{budget}"
+        else:
+            budget = min(presupuestos)
+            explanation = f"Presupuesto (minimo): Q{budget}"
+
+        return budget, explanation
 
     def evaluate_complexity(self, participants: list[dict]) -> ComplexityScore:
         """Evalua complejidad basada en disparidad de presupuestos y productos."""
@@ -69,11 +92,12 @@ class CompraSolver(BaseSolver):
             )
 
         explanations = []
+        budget_label = "Mediana" if self.budget_method == "median" else "Minimo"
+        explanations.append(f"Metodo de presupuesto: {budget_label}")
 
-        # Presupuesto (minimo del grupo)
-        presupuestos = [p.get("presupuesto_max", float('inf')) for p in participants]
-        presupuesto = min(presupuestos) if presupuestos else 0
-        explanations.append(f"Presupuesto limitado al minimo: Q{presupuesto}")
+        # Presupuesto
+        presupuesto, budget_explanation = self._calculate_budget(participants)
+        explanations.append(budget_explanation)
 
         # Productos mas votados
         producto_counter = Counter()

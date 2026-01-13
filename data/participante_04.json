@@ -1,17 +1,18 @@
 {
-  "tipo": "compra",
+  "tipo": "proyecto",
   "nombre": "Jose Martinez",
-  "presupuesto_max": 300,
-  "productos_interes": [
-    "escritorio standing",
-    "laptop stand",
-    "silla ergonomica",
-    "teclado mecanico"
+  "habilidades": [
+    "testing",
+    "devops",
+    "machine learning",
+    "backend"
   ],
-  "marcas_preferidas": [
-    "Razer",
-    "Dell",
-    "sin preferencia"
+  "disponibilidad_horas": 15,
+  "tareas_interes": [
+    "deployment",
+    "seguridad"
   ],
-  "prioridad": "calidad"
+  "tareas_evitar": [
+    "integracion de servicios"
+  ]
 }

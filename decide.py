@@ -234,6 +234,15 @@ def main():
                         help=f"Umbral de complejidad para usar LLM (default: {DEFAULT_THRESHOLD})")
     parser.add_argument("--verbose", "-v", action="store_true",
                         help="Mostrar metricas de complejidad")
+
+    # Opciones de teoria de juegos
+    parser.add_argument("--voting", choices=["plurality", "borda"], default="plurality",
+                        help="Metodo de votacion: plurality (default) o borda")
+    parser.add_argument("--budget", choices=["minimum", "median"], default="minimum",
+                        help="Metodo de presupuesto: minimum (default) o median")
+    parser.add_argument("--matching", choices=["greedy", "gale-shapley"], default="greedy",
+                        help="Metodo de matching: greedy (default) o gale-shapley")
+
     args = parser.parse_args()
 
     # Verificar API key (solo requerida si no es --algo-only)
@@ -285,7 +294,12 @@ def main():
     algo_result = None
 
     if not args.llm_only:
-        solver = get_solver(decision_type)
+        solver = get_solver(
+            decision_type,
+            voting_method=args.voting,
+            budget_method=args.budget,
+            matching_method=args.matching
+        )
         complexity = solver.evaluate_complexity(participants)
 
         if args.verbose:

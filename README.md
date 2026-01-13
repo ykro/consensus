@@ -117,6 +117,82 @@ else:
     usar_llm()
 ```
 
+## Teoria de Juegos
+
+El sistema implementa algoritmos de teoria de juegos para mejorar las decisiones:
+
+### Metodos de Votacion
+
+| Metodo | Flag | Descripcion |
+|--------|------|-------------|
+| **Pluralidad** | `--voting plurality` | Cada mencion = 1 voto. Simple pero ignora preferencias secundarias. |
+| **Borda Count** | `--voting borda` | Asigna puntos por ranking (1°=n pts, 2°=n-1, etc). Considera todas las preferencias. |
+
+**Ejemplo Borda Count:**
+```
+Participante tiene preferencias: [Antigua, Atitlan, Tikal]
+- Antigua: 3 puntos (1ra preferencia)
+- Atitlan: 2 puntos (2da preferencia)
+- Tikal: 1 punto (3ra preferencia)
+```
+
+### Metodos de Presupuesto
+
+| Metodo | Flag | Descripcion |
+|--------|------|-------------|
+| **Minimo** | `--budget minimum` | Usa el presupuesto mas bajo. Conservador, todos pueden participar. |
+| **Mediana** | `--budget median` | Usa la mediana. Menos sensible a extremos, mas representativo. |
+
+**Ejemplo:**
+```
+Presupuestos: [100, 200, 300, 500, 2000]
+- Minimo: Q100 (muy conservador)
+- Mediana: Q300 (valor central, ignora extremos)
+```
+
+### Metodos de Matching (Proyectos)
+
+| Metodo | Flag | Descripcion |
+|--------|------|-------------|
+| **Greedy** | `--matching greedy` | Asigna la mejor opcion disponible en cada paso. Rapido pero puede no ser optimo. |
+| **Gale-Shapley** | `--matching gale-shapley` | Matching estable (Deferred Acceptance). Nadie prefiere intercambiar asignaciones. |
+
+**Algoritmo Gale-Shapley:**
+```
+1. Cada participante tiene ranking de tareas preferidas
+2. Cada tarea tiene ranking de participantes (por habilidad/interes)
+3. Participantes "proponen" a tareas en orden de preferencia
+4. Tareas aceptan temporalmente al mejor candidato
+5. Si llega mejor candidato, reemplaza al anterior (que vuelve a proponer)
+6. Termina cuando no hay mas propuestas
+7. Resultado: matching estable (nadie quiere intercambiar)
+```
+
+### Uso de Opciones de Teoria de Juegos
+
+```bash
+# Usar Borda Count para votacion
+uv run python decide.py --algo-only --voting borda
+
+# Usar mediana para presupuesto en viajes
+uv run python decide.py --algo-only --budget median
+
+# Usar Gale-Shapley para asignacion de tareas
+uv run python decide.py --algo-only --matching gale-shapley
+
+# Combinar opciones
+uv run python decide.py --algo-only --voting borda --budget median --verbose
+```
+
+### Cuando usar cada metodo
+
+| Situacion | Recomendacion |
+|-----------|---------------|
+| Preferencias con ranking claro | `--voting borda` |
+| Presupuestos muy dispares | `--budget median` |
+| Evitar conflictos de asignacion | `--matching gale-shapley` |
+| Rapidez sobre optimalidad | Defaults (plurality, minimum, greedy) |
+
 ## Requisitos
 
 - Python 3.11+

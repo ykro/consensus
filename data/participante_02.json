@@ -1,16 +1,19 @@
 {
-  "tipo": "compra",
+  "tipo": "proyecto",
   "nombre": "Carlos Lopez",
-  "presupuesto_max": 100,
-  "productos_interes": [
-    "monitor",
-    "hub USB",
-    "webcam"
+  "habilidades": [
+    "base de datos",
+    "backend",
+    "mobile",
+    "devops"
   ],
-  "marcas_preferidas": [
-    "Razer",
-    "Apple",
-    "HP"
+  "disponibilidad_horas": 10,
+  "tareas_interes": [
+    "testing automatizado",
+    "base de datos"
   ],
-  "prioridad": "envio rapido"
+  "tareas_evitar": [
+    "optimizacion de rendimiento",
+    "integracion de servicios"
+  ]
 }

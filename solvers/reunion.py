@@ -7,6 +7,52 @@ from .base import BaseSolver, ComplexityScore, SolverResult
 class ReunionSolver(BaseSolver):
     """Resuelve consenso para reuniones sociales."""
 
+    def __init__(self, voting_method: str = "plurality"):
+        """
+        Args:
+            voting_method: "plurality" (default) o "borda"
+        """
+        self.voting_method = voting_method
+
+    def _borda_count(self, participants: list[dict], field: str, subfield: str = None) -> Counter:
+        """Calcula Borda Count para un campo.
+
+        Borda asigna puntos segun posicion en la lista de preferencias:
+        - 1ra preferencia = n puntos
+        - 2da preferencia = n-1 puntos
+        - etc.
+        """
+        scores = Counter()
+        for p in participants:
+            if subfield:
+                items = p.get(field, {}).get(subfield, [])
+            else:
+                items = p.get(field, [])
+
+            n = len(items)
+            for rank, item in enumerate(items):
+                # Primer item = n puntos, segundo = n-1, etc.
+                scores[item] += n - rank
+        return scores
+
+    def _plurality_count(self, participants: list[dict], field: str, subfield: str = None) -> Counter:
+        """Conteo simple de votos (cada mencion = 1 voto)."""
+        counter = Counter()
+        for p in participants:
+            if subfield:
+                items = p.get(field, {}).get(subfield, [])
+            else:
+                items = p.get(field, [])
+            for item in items:
+                counter[item] += 1
+        return counter
+
+    def _count_votes(self, participants: list[dict], field: str, subfield: str = None) -> Counter:
+        """Cuenta votos segun el metodo configurado."""
+        if self.voting_method == "borda":
+            return self._borda_count(participants, field, subfield)
+        return self._plurality_count(participants, field, subfield)
+
     def evaluate_complexity(self, participants: list[dict]) -> ComplexityScore:
         """Evalua complejidad basada en overlap de disponibilidad y diversidad."""
         factors = []
@@ -75,32 +121,33 @@ class ReunionSolver(BaseSolver):
             )
 
         explanations = []
+        method_label = "Borda" if self.voting_method == "borda" else "Pluralidad"
+        explanations.append(f"Metodo de votacion: {method_label}")
 
-        # Mejor fecha (la que mas participantes tienen)
-        date_counter = Counter()
-        for p in participants:
-            for date in p.get("disponibilidad", {}).get("fechas", []):
-                date_counter[date] += 1
-
-        if not date_counter:
+        # Mejor fecha
+        date_scores = self._count_votes(participants, "disponibilidad", "fechas")
+        if not date_scores:
             return SolverResult(success=False, explanation="No hay fechas disponibles")
 
-        best_date, date_count = date_counter.most_common(1)[0]
-        explanations.append(f"{date_count}/{len(participants)} participantes disponibles en {best_date}")
+        best_date, date_score = date_scores.most_common(1)[0]
+        max_possible = len(participants) if self.voting_method == "plurality" else None
+        if self.voting_method == "borda":
+            explanations.append(f"Fecha: {best_date} ({date_score} pts Borda)")
+        else:
+            explanations.append(f"{date_score}/{len(participants)} participantes disponibles en {best_date}")
 
-        # Mejor hora (la que mas participantes tienen)
-        hour_counter = Counter()
-        for p in participants:
-            for hour in p.get("disponibilidad", {}).get("horas", []):
-                hour_counter[hour] += 1
-
-        if not hour_counter:
+        # Mejor hora
+        hour_scores = self._count_votes(participants, "disponibilidad", "horas")
+        if not hour_scores:
             return SolverResult(success=False, explanation="No hay horas disponibles")
 
-        best_hour, hour_count = hour_counter.most_common(1)[0]
-        explanations.append(f"{hour_count}/{len(participants)} participantes disponibles en {best_hour}")
+        best_hour, hour_score = hour_scores.most_common(1)[0]
+        if self.voting_method == "borda":
+            explanations.append(f"Hora: {best_hour} ({hour_score} pts Borda)")
+        else:
+            explanations.append(f"{hour_score}/{len(participants)} participantes disponibles en {best_hour}")
 
-        # Zona mas comun (moda)
+        # Zona mas comun (moda - no aplica Borda porque es single-choice)
         zonas = [p.get("zona", "") for p in participants if p.get("zona")]
         zona_counter = Counter(zonas)
         best_zona = zona_counter.most_common(1)[0][0] if zona_counter else "Sin zona definida"
@@ -114,24 +161,28 @@ class ReunionSolver(BaseSolver):
         if all_restrictions:
             explanations.append(f"Menu debe considerar: {', '.join(all_restrictions)}")
 
-        # Tipo de lugar (interseccion o el mas comun)
-        all_prefs = [set(p.get("preferencias_lugar", [])) for p in participants]
-        common_prefs = set.intersection(*all_prefs) if all_prefs else set()
-
-        if common_prefs:
-            best_lugar = list(common_prefs)[0]
-            explanations.append(f"Tipo de lugar en comun: {best_lugar}")
+        # Tipo de lugar
+        lugar_scores = self._count_votes(participants, "preferencias_lugar")
+        if lugar_scores:
+            best_lugar, lugar_score = lugar_scores.most_common(1)[0]
+            if self.voting_method == "borda":
+                explanations.append(f"Tipo de lugar: {best_lugar} ({lugar_score} pts Borda)")
+            else:
+                explanations.append(f"Tipo mas votado: {best_lugar}")
         else:
-            lugar_counter = Counter()
-            for p in participants:
-                for lugar in p.get("preferencias_lugar", []):
-                    lugar_counter[lugar] += 1
-            best_lugar = lugar_counter.most_common(1)[0][0] if lugar_counter else "restaurante"
-            explanations.append(f"Tipo mas votado: {best_lugar}")
+            best_lugar = "restaurante"
 
         # Calcular confianza
-        date_ratio = date_count / len(participants)
-        hour_ratio = hour_count / len(participants)
+        if self.voting_method == "borda":
+            # Para Borda, normalizar contra el maximo teorico
+            max_dates = sum(len(p.get("disponibilidad", {}).get("fechas", [])) for p in participants)
+            max_hours = sum(len(p.get("disponibilidad", {}).get("horas", [])) for p in participants)
+            date_ratio = date_score / max_dates if max_dates else 0
+            hour_ratio = hour_score / max_hours if max_hours else 0
+        else:
+            date_ratio = date_score / len(participants)
+            hour_ratio = hour_score / len(participants)
+
         zona_ratio = zona_count / len(participants)
         confidence = (date_ratio + hour_ratio + zona_ratio) / 3
 

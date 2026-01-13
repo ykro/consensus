@@ -1,17 +1,17 @@
 {
-  "tipo": "compra",
+  "tipo": "proyecto",
   "nombre": "Ana Garcia",
-  "presupuesto_max": 150,
-  "productos_interes": [
-    "webcam",
-    "hub USB",
-    "mouse ergonomico",
-    "escritorio standing"
+  "habilidades": [
+    "documentacion",
+    "backend",
+    "testing"
   ],
-  "marcas_preferidas": [
-    "Corsair",
-    "LG",
-    "Logitech"
+  "disponibilidad_horas": 5,
+  "tareas_interes": [
+    "documentacion tecnica",
+    "integracion de servicios"
   ],
-  "prioridad": "garantia"
+  "tareas_evitar": [
+    "interfaz de usuario"
+  ]
 }
