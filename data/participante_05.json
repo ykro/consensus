@@ -1,21 +1,17 @@
 {
+  "tipo": "proyecto",
   "nombre": "Sofia Hernandez",
-  "disponibilidad": {
-    "fechas": [
-      "2026-01-17",
-      "2026-01-22",
-      "2026-01-23",
-      "2026-01-25"
-    ],
-    "horas": [
-      "13:00-15:00"
-    ]
-  },
-  "zona": "Zona 15 - Vista Hermosa",
-  "restricciones_alimentarias": [],
-  "preferencias_lugar": [
-    "restaurante",
-    "cafe",
-    "bar"
+  "habilidades": [
+    "documentacion",
+    "gestion de proyecto"
+  ],
+  "disponibilidad_horas": 10,
+  "tareas_interes": [
+    "testing automatizado",
+    "base de datos",
+    "integracion de servicios"
+  ],
+  "tareas_evitar": [
+    "seguridad"
   ]
 }

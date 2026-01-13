@@ -1,26 +1,18 @@
 {
+  "tipo": "proyecto",
   "nombre": "Jose Martinez",
-  "disponibilidad": {
-    "fechas": [
-      "2026-01-16",
-      "2026-01-18",
-      "2026-01-19",
-      "2026-01-22",
-      "2026-01-26"
-    ],
-    "horas": [
-      "19:00-22:00",
-      "20:00-23:00",
-      "18:00-21:00"
-    ]
-  },
-  "zona": "Zona 1 - Centro Historico",
-  "restricciones_alimentarias": [
-    "kosher"
+  "habilidades": [
+    "devops",
+    "gestion de proyecto"
   ],
-  "preferencias_lugar": [
-    "restaurante",
-    "cafe",
-    "bar"
+  "disponibilidad_horas": 10,
+  "tareas_interes": [
+    "interfaz de usuario",
+    "deployment",
+    "desarrollo de API",
+    "integracion de servicios"
+  ],
+  "tareas_evitar": [
+    "optimizacion de rendimiento"
   ]
 }

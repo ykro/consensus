@@ -1,21 +1,21 @@
 {
+  "tipo": "proyecto",
   "nombre": "Carlos Lopez",
-  "disponibilidad": {
-    "fechas": [
-      "2026-01-15",
-      "2026-01-19",
-      "2026-01-23"
-    ],
-    "horas": [
-      "19:00-22:00",
-      "20:00-23:00"
-    ]
-  },
-  "zona": "Zona 1 - Centro Historico",
-  "restricciones_alimentarias": [
-    "sin mariscos"
+  "habilidades": [
+    "documentacion",
+    "devops",
+    "testing",
+    "frontend"
   ],
-  "preferencias_lugar": [
-    "bar"
+  "disponibilidad_horas": 20,
+  "tareas_interes": [
+    "documentacion tecnica",
+    "code review",
+    "testing automatizado",
+    "seguridad"
+  ],
+  "tareas_evitar": [
+    "interfaz de usuario",
+    "deployment"
   ]
 }

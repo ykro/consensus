@@ -1,20 +1,17 @@
 {
+  "tipo": "proyecto",
   "nombre": "Ana Garcia",
-  "disponibilidad": {
-    "fechas": [
-      "2026-01-15",
-      "2026-01-24",
-      "2026-01-26"
-    ],
-    "horas": [
-      "12:00-14:00"
-    ]
-  },
-  "zona": "Zona 10 - Zona Viva",
-  "restricciones_alimentarias": [
-    "vegetariano"
+  "habilidades": [
+    "documentacion",
+    "machine learning",
+    "frontend"
   ],
-  "preferencias_lugar": [
-    "bar"
+  "disponibilidad_horas": 25,
+  "tareas_interes": [
+    "desarrollo de API",
+    "base de datos"
+  ],
+  "tareas_evitar": [
+    "interfaz de usuario"
   ]
 }

@@ -1,102 +1,76 @@
 #!/usr/bin/env python3
-"""Genera 10 archivos JSON con datos de participantes para reunion."""
+"""Genera archivos JSON con datos de participantes segun el tipo de decision."""
 
+import argparse
 import json
-import os
-import random
+import shutil
 from pathlib import Path
 from rich.console import Console
 
+from schemas import SCHEMAS, get_schema
+
 console = Console()
 
-# Datos para generar participantes realistas
-NOMBRES = [
-    "Ana Garcia", "Carlos Lopez", "Maria Rodriguez", "Jose Martinez",
-    "Sofia Hernandez", "Diego Perez", "Lucia Gonzalez", "Fernando Diaz",
-    "Valentina Morales", "Andres Castillo"
-]
-
-ZONAS = [
-    "Zona 1 - Centro Historico",
-    "Zona 4 - Cuatro Grados Norte",
-    "Zona 10 - Zona Viva",
-    "Zona 14 - Oakland",
-    "Zona 15 - Vista Hermosa",
-    "Zona 16 - Cayala"
-]
-
-RESTRICCIONES = [
-    [], [], [],  # mayoría sin restricciones
-    ["vegetariano"],
-    ["vegano"],
-    ["sin gluten"],
-    ["sin lactosa"],
-    ["kosher"],
-    ["sin mariscos"],
-    ["vegetariano", "sin gluten"]
-]
-
-PREFERENCIAS_LUGAR = [
-    ["restaurante"],
-    ["cafe"],
-    ["bar"],
-    ["restaurante", "cafe"],
-    ["restaurante", "bar"],
-    ["cafe", "bar"],
-    ["restaurante", "cafe", "bar"]
-]
-
-# Fechas posibles (proximas 2 semanas)
-FECHAS_BASE = ["2026-01-15", "2026-01-16", "2026-01-17", "2026-01-18", "2026-01-19",
-               "2026-01-22", "2026-01-23", "2026-01-24", "2026-01-25", "2026-01-26"]
-
-HORAS = [
-    "12:00-14:00", "13:00-15:00",  # almuerzo
-    "18:00-21:00", "19:00-22:00", "20:00-23:00"  # cena
-]
-
-def generate_participant(nombre: str) -> dict:
-    """Genera datos aleatorios para un participante."""
-    # Seleccionar 2-5 fechas disponibles
-    num_fechas = random.randint(2, 5)
-    fechas = random.sample(FECHAS_BASE, num_fechas)
-    fechas.sort()
-
-    # Seleccionar 1-3 rangos de hora
-    num_horas = random.randint(1, 3)
-    horas = random.sample(HORAS, num_horas)
-
-    return {
-        "nombre": nombre,
-        "disponibilidad": {
-            "fechas": fechas,
-            "horas": horas
-        },
-        "zona": random.choice(ZONAS),
-        "restricciones_alimentarias": random.choice(RESTRICCIONES),
-        "preferencias_lugar": random.choice(PREFERENCIAS_LUGAR)
-    }
 
 def main():
-    # Crear directorio data si no existe
+    parser = argparse.ArgumentParser(description="Genera datos de participantes")
+    parser.add_argument(
+        "--type", "-t",
+        choices=list(SCHEMAS.keys()),
+        default="reunion",
+        help="Tipo de decision (default: reunion)"
+    )
+    parser.add_argument(
+        "--count", "-n",
+        type=int,
+        default=10,
+        help="Numero de participantes (default: 10)"
+    )
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Limpiar directorio data antes de generar"
+    )
+    args = parser.parse_args()
+
+    schema_info = get_schema(args.type)
+    generate_func = schema_info["generate"]
+
+    # Crear/limpiar directorio data
     data_dir = Path("data")
+    if args.clean and data_dir.exists():
+        shutil.rmtree(data_dir)
     data_dir.mkdir(exist_ok=True)
 
-    console.print("[cyan]Generando datos de participantes...[/cyan]")
+    console.print(f"[cyan]Tipo:[/cyan] {args.type} - {schema_info['description']}")
+    console.print(f"[cyan]Generando {args.count} participantes...[/cyan]")
 
-    for i, nombre in enumerate(NOMBRES, 1):
-        participante = generate_participant(nombre)
+    for i in range(args.count):
+        participante = generate_func(i)
 
-        # Nombre de archivo basado en nombre
-        filename = f"participante_{i:02d}.json"
+        filename = f"participante_{i+1:02d}.json"
         filepath = data_dir / filename
 
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(participante, f, ensure_ascii=False, indent=2)
 
-        console.print(f"  [green]+[/green] {filename}: {nombre} ({participante['zona']})")
+        # Mostrar info relevante segun tipo
+        nombre = participante.get("nombre", f"Participante {i+1}")
+        if args.type == "reunion":
+            extra = participante.get("zona", "")
+        elif args.type == "viaje":
+            extra = f"Q{participante.get('presupuesto_max', 0)}"
+        elif args.type == "proyecto":
+            extra = f"{participante.get('disponibilidad_horas', 0)}h"
+        elif args.type == "compra":
+            extra = f"Q{participante.get('presupuesto_max', 0)}"
+        else:
+            extra = ""
 
-    console.print(f"\n[green]Se generaron {len(NOMBRES)} archivos en {data_dir}/[/green]")
+        console.print(f"  [green]+[/green] {filename}: {nombre} ({extra})")
+
+    console.print(f"\n[green]Se generaron {args.count} archivos en {data_dir}/[/green]")
+
 
 if __name__ == "__main__":
     main()
